@@ -334,21 +334,28 @@
 
       reviewElement.innerHTML = `
 
-        <div class="review-top">
+  <div class="review-top">
 
-          <div class="rating">
-            ${stars}
-          </div>
+    <div class="rating">
+      ${stars}
+    </div>
 
-        </div>
+    <button
+      class="delete-button"
+      onclick="deleteReview('${review.id}')"
+    >
+      🗑 Удалить
+    </button>
 
-        <div class="comment">
-          ${review.comment}
-        </div>
+  </div>
 
-        <div class="date">
-          ${date}
-        </div>
+  <div class="comment">
+    ${review.comment}
+  </div>
+
+  <div class="date">
+    ${date}
+  </div>
 
       `;
 
@@ -408,7 +415,30 @@
 
   }
 
+async function deleteReview(id) {
 
+  const confirmed = confirm(
+    "Удалить этот отзыв?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("Не удалось удалить отзыв.");
+    return;
+  }
+
+  await loadReviews();
+}
+  
   loadReviews();
 
 </script>
