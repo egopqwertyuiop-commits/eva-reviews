@@ -139,6 +139,16 @@
 
 <p>Оставьте комментарий:</p>
 
+<p>Ваше имя:</p>
+
+<input
+  type="text"
+  id="name"
+  name="name"
+  placeholder="Введите ваше имя"
+  required
+>
+
 <textarea
   id="comment"
   name="comment"
@@ -167,6 +177,10 @@
       'input[name="rating"]:checked'
     );
 
+    const name = document
+  .querySelector("#name")
+  .value
+  .trim();
     const comment = document
       .querySelector("#comment")
       .value
@@ -187,6 +201,7 @@
       .insert([
         {
           rating: Number(rating.value),
+          name: name,
           comment: comment
         }
       ]);
