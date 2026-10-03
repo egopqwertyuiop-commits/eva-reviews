@@ -1,80 +1,169 @@
 <!DOCTYPE html>
-<html>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+<html lang="ru">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>EVA Reviews — Панель</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      padding: 40px 20px;
-      background: #f3f7fb;
       font-family: Arial, sans-serif;
-      color: #1f2937;
+      background: #eef6ff;
+      color: #111827;
     }
 
     .container {
-      max-width: 800px;
-      margin: 0 auto;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
     }
 
-    h1 {
+    .login-container {
+      max-width: 420px;
+      margin: 100px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+    }
+
+    .login-container h1 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
+    }
+
+    .login-description {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 25px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: #2563eb;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .login-button:hover {
+      background: #1d4ed8;
+    }
+
+    .error {
+      margin-top: 15px;
+      color: #dc2626;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .dashboard {
+      display: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      margin: 0;
+    }
+
+    .logout-button {
+      border: none;
+      background: #ef4444;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout-button:hover {
+      background: #dc2626;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 15px;
       margin-bottom: 20px;
     }
 
     .stat {
       background: white;
-      padding: 25px;
+      padding: 20px;
       border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    }
-
-    .stat-number {
-      font-size: 30px;
-      font-weight: bold;
-      margin-bottom: 8px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
 
     .stat-title {
       color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
     }
 
     .distribution {
       background: white;
-      padding: 25px;
+      padding: 20px;
       border-radius: 16px;
       margin-bottom: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
 
     .distribution h2 {
       margin-top: 0;
-      font-size: 20px;
     }
 
     .rating-row {
-      display: flex;
-      align-items: center;
+      display: grid;
+      grid-template-columns: 70px 1fr 40px;
       gap: 10px;
-      margin: 10px 0;
+      align-items: center;
+      margin: 12px 0;
     }
 
     .rating-label {
-      width: 50px;
+      font-weight: bold;
     }
 
     .bar {
-      flex: 1;
       height: 10px;
       background: #e5e7eb;
       border-radius: 10px;
@@ -87,34 +176,30 @@
       border-radius: 10px;
     }
 
-    .reviews {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
     .review {
       background: white;
       padding: 20px;
       border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+      margin-bottom: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
 
     .review-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .rating {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     .comment {
       font-size: 16px;
-      margin: 15px 0;
       line-height: 1.5;
+      margin-bottom: 12px;
     }
 
     .date {
@@ -129,40 +214,54 @@
       padding: 8px 12px;
       border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
     }
 
     .delete-button:hover {
       background: #fecaca;
     }
 
-    .clear-button {
+    .refresh-button {
       width: 100%;
       margin-top: 20px;
       padding: 14px;
       border: none;
       border-radius: 12px;
-      background: #dc2626;
+      background: #2563eb;
       color: white;
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    .clear-button:hover {
-      background: #b91c1c;
+    .refresh-button:hover {
+      background: #1d4ed8;
     }
 
     .empty {
-      text-align: center;
-      color: #6b7280;
-      padding: 30px;
       background: white;
+      padding: 30px;
+      text-align: center;
       border-radius: 16px;
+      color: #6b7280;
     }
 
     @media (max-width: 600px) {
+      .container {
+        margin: 20px auto;
+        padding: 15px;
+      }
+
+      .header {
+        align-items: flex-start;
+      }
+
       .stats {
         grid-template-columns: 1fr;
+      }
+
+      .review-top {
+        align-items: flex-start;
       }
     }
   </style>
@@ -170,278 +269,604 @@
 
 <body>
 
-<div class="container">
+  <!-- ========================= -->
+  <!-- ФОРМА ВХОДА -->
+  <!-- ========================= -->
 
-  <h1>EVA Reviews</h1>
+  <div id="loginContainer" class="login-container">
 
-  <div class="stats">
+    <h1>🔐 EVA Reviews</h1>
 
-    <div class="stat">
-      <div id="average" class="stat-number">—</div>
-      <div class="stat-title">Средняя оценка</div>
+    <div class="login-description">
+      Войдите в панель управления отзывами
     </div>
 
-    <div class="stat">
-      <div id="count" class="stat-number">0</div>
-      <div class="stat-title">Всего отзывов</div>
-    </div>
+    <form id="loginForm">
+
+      <input
+        id="email"
+        class="input"
+        type="email"
+        placeholder="Email"
+        required
+      >
+
+      <input
+        id="password"
+        class="input"
+        type="password"
+        placeholder="Пароль"
+        required
+      >
+
+      <button
+        class="login-button"
+        type="submit"
+      >
+        Войти
+      </button>
+
+      <div
+        id="loginError"
+        class="error"
+      ></div>
+
+    </form>
 
   </div>
 
 
-  <div class="distribution">
+  <!-- ========================= -->
+  <!-- ПАНЕЛЬ АДМИНИСТРАТОРА -->
+  <!-- ========================= -->
 
-    <h2>Распределение оценок</h2>
+  <div
+    id="dashboard"
+    class="dashboard"
+  >
 
-    <div id="distribution"></div>
+    <div class="container">
 
-  </div>
+      <div class="header">
 
+        <h1>EVA Reviews</h1>
 
-  <div id="reviews" class="reviews"></div>
+        <button
+          class="logout-button"
+          onclick="logout()"
+        >
+          Выйти
+        </button>
 
-<button
-  onclick="loadReviews()"
-  style="
-    width: 100%;
-    margin-top: 20px;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    background: #2563eb;
-    color: white;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-  "
->
-  🔄 Обновить отзывы
-</button>
-  
-</div>
+      </div>
 
 
-<script>
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+      <!-- СТАТИСТИКА -->
 
-  let reviews = [];
+      <div class="stats">
 
+        <div class="stat">
 
-  const reviewsContainer =
-    document.querySelector("#reviews");
+          <div class="stat-title">
+            Средняя оценка
+          </div>
 
-  const averageElement =
-    document.querySelector("#average");
+          <div
+            id="average"
+            class="stat-value"
+          >
+            —
+          </div>
 
-  const countElement =
-    document.querySelector("#count");
-
-  const distributionElement =
-    document.querySelector("#distribution");
-
-
-  async function loadReviews() {
-
-    const { data, error } = await supabaseClient
-      .from("reviews")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-
-    if (error) {
-
-      console.error(error);
-
-      reviewsContainer.innerHTML = `
-        <div class="empty">
-          Не удалось загрузить отзывы.
         </div>
-      `;
 
-      return;
+
+        <div class="stat">
+
+          <div class="stat-title">
+            Всего отзывов
+          </div>
+
+          <div
+            id="count"
+            class="stat-value"
+          >
+            0
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- РАСПРЕДЕЛЕНИЕ -->
+
+      <div class="distribution">
+
+        <h2>
+          Оценки
+        </h2>
+
+        <div id="distribution"></div>
+
+      </div>
+
+
+      <!-- ОТЗЫВЫ -->
+
+      <div id="reviews"></div>
+
+
+      <!-- ОБНОВИТЬ -->
+
+      <button
+        class="refresh-button"
+        onclick="loadReviews()"
+      >
+        🔄 Обновить отзывы
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- JAVASCRIPT -->
+  <!-- ========================= -->
+
+  <script>
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    let reviews = [];
+
+
+    const loginContainer =
+      document.querySelector("#loginContainer");
+
+    const dashboard =
+      document.querySelector("#dashboard");
+
+    const loginForm =
+      document.querySelector("#loginForm");
+
+    const loginError =
+      document.querySelector("#loginError");
+
+
+    const reviewsContainer =
+      document.querySelector("#reviews");
+
+    const averageElement =
+      document.querySelector("#average");
+
+    const countElement =
+      document.querySelector("#count");
+
+    const distributionElement =
+      document.querySelector("#distribution");
+
+
+    // =========================
+    // ПРОВЕРКА АВТОРИЗАЦИИ
+    // =========================
+
+    async function checkAuth() {
+
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+
+      if (session) {
+
+        showDashboard();
+
+      } else {
+
+        showLogin();
+
+      }
+
     }
 
 
-    reviews = data || [];
+    // =========================
+    // ПОКАЗАТЬ ВХОД
+    // =========================
 
-    render();
+    function showLogin() {
 
-  }
+      loginContainer.style.display = "block";
+
+      dashboard.style.display = "none";
+
+    }
 
 
-  function render() {
+    // =========================
+    // ПОКАЗАТЬ ПАНЕЛЬ
+    // =========================
 
-    countElement.textContent = reviews.length;
+    function showDashboard() {
+
+      loginContainer.style.display = "none";
+
+      dashboard.style.display = "block";
+
+      loadReviews();
+
+    }
 
 
-    if (reviews.length === 0) {
+    // =========================
+    // ВХОД
+    // =========================
 
-      averageElement.textContent = "—";
+    loginForm.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        loginError.textContent = "";
+
+
+        const email =
+          document.querySelector("#email").value.trim();
+
+
+        const password =
+          document.querySelector("#password").value;
+
+
+        const { error } =
+          await supabaseClient.auth.signInWithPassword({
+
+            email: email,
+
+            password: password
+
+          });
+
+
+        if (error) {
+
+          console.error(error);
+
+          loginError.textContent =
+            "Неверный email или пароль.";
+
+          return;
+
+        }
+
+
+        showDashboard();
+
+      }
+    );
+
+
+    // =========================
+    // ВЫХОД
+    // =========================
+
+    async function logout() {
+
+      await supabaseClient.auth.signOut();
+
+      showLogin();
+
+    }
+
+
+    // =========================
+    // ЗАГРУЗКА ОТЗЫВОВ
+    // =========================
+
+    async function loadReviews() {
+
+      const { data, error } =
+        await supabaseClient
+          .from("reviews")
+          .select("*")
+          .order("created_at", {
+            ascending: false
+          });
+
+
+      if (error) {
+
+        console.error(error);
+
+        reviewsContainer.innerHTML = `
+          <div class="empty">
+            Не удалось загрузить отзывы.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      reviews = data || [];
+
+      render();
+
+    }
+
+
+    // =========================
+    // ОТРИСОВКА
+    // =========================
+
+    function render() {
+
+      countElement.textContent =
+        reviews.length;
+
+
+      if (reviews.length === 0) {
+
+        averageElement.textContent = "—";
+
+        distributionElement.innerHTML = "";
+
+        reviewsContainer.innerHTML = `
+          <div class="empty">
+            Пока отзывов нет.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      const total =
+        reviews.reduce(
+          (sum, review) => {
+
+            return sum + Number(review.rating);
+
+          },
+          0
+        );
+
+
+      const average =
+        (total / reviews.length).toFixed(1);
+
+
+      averageElement.textContent =
+        "⭐ " + average;
+
+
+      renderDistribution();
+
+
+      reviewsContainer.innerHTML = "";
+
+
+      reviews.forEach((review) => {
+
+        const stars =
+          "⭐".repeat(
+            Number(review.rating)
+          );
+
+
+        const reviewElement =
+          document.createElement("div");
+
+
+        reviewElement.className =
+          "review";
+
+
+        const date =
+          new Date(
+            review.created_at
+          ).toLocaleString("ru-RU");
+
+
+        reviewElement.innerHTML = `
+
+          <div class="review-top">
+
+            <div class="rating">
+              ${stars}
+            </div>
+
+            <button
+              class="delete-button"
+              onclick="deleteReview('${review.id}')"
+            >
+              🗑 Удалить
+            </button>
+
+          </div>
+
+
+          <div class="comment">
+            ${escapeHtml(review.comment)}
+          </div>
+
+
+          <div class="date">
+            ${date}
+          </div>
+
+        `;
+
+
+        reviewsContainer.appendChild(
+          reviewElement
+        );
+
+      });
+
+    }
+
+
+    // =========================
+    // РАСПРЕДЕЛЕНИЕ ОЦЕНОК
+    // =========================
+
+    function renderDistribution() {
 
       distributionElement.innerHTML = "";
 
-      reviewsContainer.innerHTML = `
-        <div class="empty">
-          Пока отзывов нет.
-        </div>
-      `;
 
-      return;
+      for (
+        let rating = 5;
+        rating >= 1;
+        rating--
+      ) {
+
+        const count =
+          reviews.filter(
+            review =>
+              Number(review.rating) === rating
+          ).length;
+
+
+        const percentage =
+          reviews.length === 0
+            ? 0
+            : (count / reviews.length) * 100;
+
+
+        distributionElement.innerHTML += `
+
+          <div class="rating-row">
+
+            <div class="rating-label">
+              ⭐ ${rating}
+            </div>
+
+
+            <div class="bar">
+
+              <div
+                class="bar-fill"
+                style="width: ${percentage}%"
+              ></div>
+
+            </div>
+
+
+            <div>
+              ${count}
+            </div>
+
+          </div>
+
+        `;
+
+      }
+
     }
 
 
-    const total = reviews.reduce((sum, review) => {
+    // =========================
+    // УДАЛЕНИЕ ОТЗЫВА
+    // =========================
 
-      return sum + Number(review.rating);
+    async function deleteReview(id) {
 
-    }, 0);
-
-
-    const average =
-      (total / reviews.length).toFixed(1);
-
-
-    averageElement.textContent =
-      "⭐ " + average;
+      const confirmed =
+        confirm(
+          "Удалить этот отзыв?"
+        );
 
 
-    renderDistribution();
+      if (!confirmed) {
+
+        return;
+
+      }
 
 
-    reviewsContainer.innerHTML = "";
+      const { error } =
+        await supabaseClient
+          .from("reviews")
+          .delete()
+          .eq("id", id);
 
 
-    reviews.forEach((review) => {
+      if (error) {
 
-      const stars =
-        "⭐".repeat(Number(review.rating));
+        console.error(error);
+
+        alert(
+          "Не удалось удалить отзыв."
+        );
+
+        return;
+
+      }
 
 
-      const reviewElement =
+      await loadReviews();
+
+    }
+
+
+    // =========================
+    // ЗАЩИТА ОТ HTML В ОТЗЫВАХ
+    // =========================
+
+    function escapeHtml(text) {
+
+      const div =
         document.createElement("div");
 
+      div.textContent =
+        text || "";
 
-      reviewElement.className = "review";
-
-
-      const date =
-        new Date(review.created_at)
-          .toLocaleString("ru-RU");
-
-
-      reviewElement.innerHTML = `
-
-  <div class="review-top">
-
-    <div class="rating">
-      ${stars}
-    </div>
-
-    <button
-      class="delete-button"
-      onclick="deleteReview('${review.id}')"
-    >
-      🗑 Удалить
-    </button>
-
-  </div>
-
-  <div class="comment">
-    ${review.comment}
-  </div>
-
-  <div class="date">
-    ${date}
-  </div>
-
-      `;
-
-
-      reviewsContainer.appendChild(reviewElement);
-
-    });
-
-  }
-
-
-  function renderDistribution() {
-
-    distributionElement.innerHTML = "";
-
-
-    for (let rating = 5; rating >= 1; rating--) {
-
-      const count =
-        reviews.filter(
-          review => Number(review.rating) === rating
-        ).length;
-
-
-      const percentage =
-        reviews.length === 0
-          ? 0
-          : (count / reviews.length) * 100;
-
-
-      distributionElement.innerHTML += `
-
-        <div class="rating-row">
-
-          <div class="rating-label">
-            ⭐ ${rating}
-          </div>
-
-          <div class="bar">
-
-            <div
-              class="bar-fill"
-              style="width: ${percentage}%"
-            ></div>
-
-          </div>
-
-          <div>
-            ${count}
-          </div>
-
-        </div>
-
-      `;
+      return div.innerHTML;
 
     }
 
-  }
 
-async function deleteReview(id) {
+    // =========================
+    // СЛЕДИМ ЗА АВТОРИЗАЦИЕЙ
+    // =========================
 
-  const confirmed = confirm(
-    "Удалить этот отзыв?"
-  );
+    supabaseClient.auth.onAuthStateChange(
+      (event, session) => {
 
-  if (!confirmed) {
-    return;
-  }
+        if (session) {
 
-  const { error } = await supabaseClient
-    .from("reviews")
-    .delete()
-    .eq("id", id);
+          showDashboard();
 
-  if (error) {
-    console.error(error);
-    alert("Не удалось удалить отзыв.");
-    return;
-  }
+        } else {
 
-  await loadReviews();
-}
-  
-  loadReviews();
+          showLogin();
 
-</script>
+        }
+
+      }
+    );
+
+
+    // =========================
+    // ЗАПУСК
+    // =========================
+
+    checkAuth();
+
+  </script>
 
 </body>
 </html>
