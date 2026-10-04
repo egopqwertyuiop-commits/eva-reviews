@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>EVA — Подключение amoCRM</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #eaf4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: white;
+      border-radius: 24px;
+      padding: 45px 30px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 80, 160, 0.12);
+    }
+
+    .logo {
+      font-size: 42px;
+      font-weight: 800;
+      color: #1677ff;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 15px;
+      font-size: 30px;
+      color: #172033;
+    }
+
+    p {
+      margin: 0 auto 30px;
+      max-width: 430px;
+      line-height: 1.6;
+      color: #667085;
+      font-size: 16px;
+    }
+
+    .info {
+      background: #f4f8ff;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 28px;
+      color: #475467;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .back {
+      display: inline-block;
+      margin-top: 20px;
+      color: #1677ff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <div class="logo">EVA</div>
+
+    <h1>Подключение amoCRM</h1>
+
+    <p>
+      Подключите свой аккаунт amoCRM,
+      чтобы EVA могла автоматически работать
+      с вашими сделками и отзывами клиентов.
+    </p>
+
+    <div class="info">
+      После нажатия откроется окно amoCRM.
+      Выберите нужный аккаунт и подтвердите
+      предоставление доступа.
+    </div>
+
+    <!-- Кнопка amoCRM -->
+    <script
+      class="amocrm_oauth"
+      charset="utf-8"
+      data-name="EVA Reviews"
+      data-description="Сервис для автоматического сбора отзывов клиентов после завершения сделки."
+      data-redirect_uri="https://vzwjpzjyhknqiowhpugu.supabase.co/functions/v1/amocrm-oauth"
+      data-secrets_uri="https://vzwjpzjyhknqiowhpugu.supabase.co/functions/v1/amocrm-oauth"
+      data-scopes="crm"
+      data-title="Подключить amoCRM"
+      data-compact="false"
+      data-color="blue"
+      data-mode="popup"
+      src="https://www.amocrm.ru/auth/button.min.js">
+    </script>
+
+    <a
+      class="back"
+      href="https://egopqwertyuiop-commits.github.io/eva-reviews/">
+      ← Вернуться на сайт EVA
+    </a>
+
+  </div>
+
+</body>
+</html>
