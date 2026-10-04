@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>EVA — Подключение amoCRM</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #eaf4ff;
+      font-family: Arial, sans-serif;
+      color: #172033;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      padding: 45px 30px;
+      background: white;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 80, 160, 0.12);
+    }
+
+    .logo {
+      font-size: 42px;
+      font-weight: 800;
+      color: #1677ff;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      margin: 0 0 15px;
+      font-size: 28px;
+    }
+
+    p {
+      color: #667085;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .success {
+      color: #16a34a;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: #dc2626;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 13px 24px;
+      border-radius: 12px;
+      background: #1677ff;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <div class="logo">EVA</div>
+
+    <h1 id="title">Проверяем подключение...</h1>
+
+    <p id="message">
+      Пожалуйста, подождите.
+    </p>
+
+    <a href="https://egopqwertyuiop-commits.github.io/eva-reviews/">
+      Вернуться на сайт EVA
+    </a>
+
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const status = params.get("status");
+
+    const title = document.getElementById("title");
+    const message = document.getElementById("message");
+
+    if (status === "success") {
+
+      title.textContent = "EVA подключена 🎉";
+
+      message.innerHTML = `
+        <span class="success">
+          Подключение к amoCRM успешно выполнено!
+        </span>
+        <br><br>
+        Теперь EVA может работать с вашим аккаунтом amoCRM.
+      `;
+
+    } else {
+
+      title.textContent = "Не удалось подключить amoCRM";
+
+      message.innerHTML = `
+        <span class="error">
+          Произошла ошибка при подключении.
+        </span>
+        <br><br>
+        Попробуйте подключить amoCRM ещё раз.
+      `;
+
+    }
+  </script>
+
+</body>
+</html>
