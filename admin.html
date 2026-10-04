@@ -183,6 +183,26 @@
       margin-bottom: 15px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
+    .filters {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}
+
+.filter-input:focus {
+  border-color: #2563eb;
+}
 
     .review-top {
       display: flex;
@@ -417,6 +437,30 @@
       <!-- ОТЗЫВЫ -->
 
       <div id="reviews"></div>
+      <!-- ФИЛЬТРЫ ОТЗЫВОВ -->
+
+<div class="filters">
+
+  <input
+    id="searchReviews"
+    class="filter-input"
+    type="text"
+    placeholder="🔎 Поиск по имени или отзыву"
+  >
+
+  <select
+    id="ratingFilter"
+    class="filter-input"
+  >
+    <option value="all">Все оценки</option>
+    <option value="5">⭐ 5</option>
+    <option value="4">⭐ 4</option>
+    <option value="3">⭐ 3</option>
+    <option value="2">⭐ 2</option>
+    <option value="1">⭐ 1</option>
+  </select>
+
+</div>
 
 
       <!-- ОБНОВИТЬ -->
@@ -503,6 +547,11 @@ forgotPasswordButton.addEventListener("click", async function () {
 
     const distributionElement =
       document.querySelector("#distribution");
+      const searchInput =
+  document.querySelector("#searchReviews");
+
+const ratingFilter =
+  document.querySelector("#ratingFilter");
 
 
     // =========================
@@ -662,6 +711,29 @@ forgotPasswordButton.addEventListener("click", async function () {
     // =========================
 
     function render() {
+      const searchText = searchInput.value
+  .toLowerCase()
+  .trim();
+
+const selectedRating = ratingFilter.value;
+
+const filteredReviews = reviews.filter((review) => {
+
+  const matchesSearch =
+    (review.name || "")
+      .toLowerCase()
+      .includes(searchText) ||
+    (review.comment || "")
+      .toLowerCase()
+      .includes(searchText);
+
+  const matchesRating =
+    selectedRating === "all" ||
+    Number(review.rating) === Number(selectedRating);
+
+  return matchesSearch && matchesRating;
+
+});
 
       countElement.textContent =
         reviews.length;
@@ -709,7 +781,7 @@ forgotPasswordButton.addEventListener("click", async function () {
       reviewsContainer.innerHTML = "";
 
 
-      reviews.forEach((review) => {
+      filteredReviews.forEach((review) => {
 
         const stars =
           "⭐".repeat(
@@ -875,6 +947,9 @@ forgotPasswordButton.addEventListener("click", async function () {
       await loadReviews();
 
     }
+    searchInput.addEventListener("input", render);
+
+ratingFilter.addEventListener("change", render);
 
 
     // =========================
