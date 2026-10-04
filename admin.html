@@ -311,6 +311,22 @@
       >
         Войти
       </button>
+      <button
+  type="button"
+  id="forgotPasswordButton"
+  style="
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-size: 14px;
+    cursor: pointer;
+  "
+>
+  Забыли пароль?
+</button>
 
       <div
         id="loginError"
@@ -428,6 +444,36 @@
         SUPABASE_URL,
         SUPABASE_KEY
       );
+      const forgotPasswordButton =
+  document.querySelector("#forgotPasswordButton");
+
+forgotPasswordButton.addEventListener("click", async function () {
+
+  const email = document.querySelector("#email").value.trim();
+
+  if (!email) {
+    alert("Сначала введите ваш Email.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo:
+        "https://egopqwertyuiop-commits.github.io/eva-reviews/update-password.html"
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Не удалось отправить письмо: " + error.message);
+    return;
+  }
+
+  alert(
+    "Письмо для восстановления пароля отправлено на " +
+    email
+  );
+
+});
 
 
     let reviews = [];
