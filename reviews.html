@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>EVA — Отзывы клиентов</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #111827;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(147,197,253,0.30), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(191,219,254,0.28), transparent 28%),
+        #eef6ff;
+    }
+
+    .page {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 55px 20px 70px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: #2563eb;
+      color: white;
+      font-size: 27px;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(37,99,235,0.25);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 38px;
+      letter-spacing: -0.8px;
+    }
+
+    .subtitle {
+      margin: 0 auto;
+      max-width: 650px;
+      color: #6b7280;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card,
+    .distribution {
+      background: rgba(255,255,255,0.92);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.06);
+      border: 1px solid rgba(229,231,235,0.8);
+    }
+
+    .average-number {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .average-stars {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .average-text {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .distribution h2 {
+      margin: 0 0 18px;
+      font-size: 19px;
+    }
+
+    .rating-row {
+      display: grid;
+      grid-template-columns: 58px 1fr 35px;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .rating-label {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 9px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: #2563eb;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .rating-count {
+      color: #6b7280;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .reviews-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .reviews-header h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .count {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .review {
+      background: white;
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+      border: 1px solid rgba(229,231,235,0.8);
+    }
+
+    .review-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .person {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #2563eb;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .name {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .date {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .stars {
+      white-space: nowrap;
+      font-size: 17px;
+    }
+
+    .comment {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 15px 17px;
+      color: #374151;
+      line-height: 1.6;
+      font-size: 15px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 20px;
+      text-align: center;
+      color: #6b7280;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+    }
+
+    .loading {
+      text-align: center;
+      color: #6b7280;
+      padding: 30px;
+    }
+
+    @media (max-width: 700px) {
+      .page {
+        padding: 35px 15px 50px;
+      }
+
+      h1 {
+        font-size: 31px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-card {
+        text-align: center;
+      }
+
+      .reviews-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .review-top {
+        flex-direction: column;
+      }
+
+      .stars {
+        align-self: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+
+    <section class="hero">
+      <div class="logo">E</div>
+
+      <h1>Отзывы наших клиентов</h1>
+
+      <p class="subtitle">
+        Нам важно ваше мнение. Здесь собраны реальные отзывы
+        клиентов о работе с EVA.
+      </p>
+    </section>
+
+
+    <section class="summary">
+
+      <div class="summary-card">
+
+        <div id="average" class="average-number">
+          —
+        </div>
+
+        <div id="averageStars" class="average-stars">
+          ☆☆☆☆☆
+        </div>
+
+        <div id="averageText" class="average-text">
+          Загружаем оценки...
+        </div>
+
+      </div>
+
+
+      <div class="distribution">
+
+        <h2>Распределение оценок</h2>
+
+        <div id="distribution">
+          <div class="loading">
+            Загружаем...
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section>
+
+      <div class="reviews-header">
+
+        <h2>Что говорят клиенты</h2>
+
+        <div id="count" class="count">
+          Загружаем...
+        </div>
+
+      </div>
+
+
+      <div id="reviews">
+
+        <div class="loading">
+          Загружаем отзывы...
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    const averageElement =
+      document.querySelector("#average");
+
+    const averageStarsElement =
+      document.querySelector("#averageStars");
+
+    const averageTextElement =
+      document.querySelector("#averageText");
+
+    const distributionElement =
+      document.querySelector("#distribution");
+
+    const reviewsElement =
+      document.querySelector("#reviews");
+
+    const countElement =
+      document.querySelector("#count");
+
+
+    async function loadPublicReviews() {
+
+      const { data, error } =
+        await supabaseClient
+          .from("reviews")
+          .select("id, created_at, rating, comment, name, is_hidden")
+          .eq("is_hidden", false)
+          .order("created_at", {
+            ascending: false
+          });
+
+
+      if (error) {
+
+        console.error(error);
+
+        averageElement.textContent = "—";
+        averageTextElement.textContent =
+          "Не удалось загрузить отзывы.";
+
+        distributionElement.innerHTML = `
+          <div class="empty">
+            Не удалось загрузить оценки.
+          </div>
+        `;
+
+        reviewsElement.innerHTML = `
+          <div class="empty">
+            Не удалось загрузить отзывы.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      const reviews =
+        data || [];
+
+
+      renderSummary(reviews);
+      renderReviews(reviews);
+
+    }
+
+
+    function renderSummary(reviews) {
+
+      if (reviews.length === 0) {
+
+        averageElement.textContent = "—";
+        averageStarsElement.textContent = "☆☆☆☆☆";
+        averageTextElement.textContent =
+          "Пока нет опубликованных отзывов.";
+
+        distributionElement.innerHTML = `
+          <div class="empty">
+            Пока нет оценок.
+          </div>
+        `;
+
+        countElement.textContent =
+          "0 отзывов";
+
+        return;
+
+      }
+
+
+      const total =
+        reviews.reduce(
+          (sum, review) =>
+            sum + Number(review.rating),
+          0
+        );
+
+
+      const average =
+        total / reviews.length;
+
+
+      averageElement.textContent =
+        average.toFixed(1);
+
+
+      const rounded =
+        Math.round(average);
+
+
+      averageStarsElement.textContent =
+        "⭐".repeat(rounded) +
+        "☆".repeat(5 - rounded);
+
+
+      countElement.textContent =
+        reviews.length +
+        " " +
+        getReviewWord(reviews.length);
+
+
+      averageTextElement.textContent =
+        "Средняя оценка клиентов";
+
+
+      distributionElement.innerHTML = "";
+
+
+      for (
+        let rating = 5;
+        rating >= 1;
+        rating--
+      ) {
+
+        const count =
+          reviews.filter(
+            review =>
+              Number(review.rating) === rating
+          ).length;
+
+
+        const percentage =
+          (count / reviews.length) * 100;
+
+
+        distributionElement.innerHTML += `
+
+          <div class="rating-row">
+
+            <div class="rating-label">
+              ⭐ ${rating}
+            </div>
+
+            <div class="bar">
+              <div
+                class="bar-fill"
+                style="width: ${percentage}%"
+              ></div>
+            </div>
+
+            <div class="rating-count">
+              ${count}
+            </div>
+
+          </div>
+
+        `;
+
+      }
+
+    }
+
+
+    function renderReviews(reviews) {
+
+      if (reviews.length === 0) {
+
+        reviewsElement.innerHTML = `
+          <div class="empty">
+            Пока нет опубликованных отзывов.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      reviewsElement.innerHTML = "";
+
+
+      reviews.forEach((review) => {
+
+        const name =
+          String(review.name || "Клиент");
+
+
+        const avatarLetter =
+          name.trim().charAt(0).toUpperCase() || "К";
+
+
+        const stars =
+          "⭐".repeat(Number(review.rating));
+
+
+        const date =
+          new Date(
+            review.created_at
+          ).toLocaleDateString(
+            "ru-RU",
+            {
+              day: "2-digit",
+              month: "long",
+              year: "numeric"
+            }
+          );
+
+
+        const element =
+          document.createElement("article");
+
+
+        element.className =
+          "review";
+
+
+        element.innerHTML = `
+
+          <div class="review-top">
+
+            <div class="person">
+
+              <div class="avatar">
+                ${escapeHtml(avatarLetter)}
+              </div>
+
+              <div>
+
+                <div class="name">
+                  ${escapeHtml(name)}
+                </div>
+
+                <div class="date">
+                  ${date}
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="stars">
+              ${stars}
+            </div>
+
+          </div>
+
+
+          <div class="comment">
+            ${escapeHtml(review.comment)}
+          </div>
+
+        `;
+
+
+        reviewsElement.appendChild(element);
+
+      });
+
+    }
+
+
+    function getReviewWord(number) {
+
+      const lastTwo =
+        number % 100;
+
+      const last =
+        number % 10;
+
+
+      if (
+        lastTwo >= 11 &&
+        lastTwo <= 14
+      ) {
+        return "отзывов";
+      }
+
+
+      if (last === 1) {
+        return "отзыв";
+      }
+
+
+      if (
+        last >= 2 &&
+        last <= 4
+      ) {
+        return "отзыва";
+      }
+
+
+      return "отзывов";
+
+    }
+
+
+    function escapeHtml(text) {
+
+      const div =
+        document.createElement("div");
+
+      div.textContent =
+        text || "";
+
+      return div.innerHTML;
+
+    }
+
+
+    loadPublicReviews();
+
+  </script>
+
+</body>
+</html>
