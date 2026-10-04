@@ -67,27 +67,31 @@
   }
 
   input[type="text"] {
-  width: 100%;
-  box-sizing: border-box;
-  height: 50px;
-  padding: 12px 15px;
-  border: 2px solid #e1e7ef;
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
-}
+    width: 100%;
+    box-sizing: border-box;
+    height: 50px;
+    padding: 12px 15px;
+    border: 2px solid #e1e7ef;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+  }
 
-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 120px;
-  padding: 15px;
-  border: 2px solid #e1e7ef;
-  border-radius: 12px;
-  resize: vertical;
-  font-size: 16px;
-  outline: none;
-}
+  input[type="text"]:focus {
+    border-color: #2563eb;
+  }
+
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 120px;
+    padding: 15px;
+    border: 2px solid #e1e7ef;
+    border-radius: 12px;
+    resize: vertical;
+    font-size: 16px;
+    outline: none;
+  }
 
   textarea:focus {
     border-color: #2563eb;
@@ -109,130 +113,269 @@ textarea {
   button:hover {
     background: #1d4ed8;
   }
+
+  button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+  }
 </style>
+
 <title>EVA Reviews</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 </head>
+
 <body>
+
 <form>
-  <p>Оцените сервис</p>
-<div class="rating">
 
-  <label>
-    <input type="radio" name="rating" value="1">
-    <span>1</span>
-  </label>
+  <p class="title">Оцените сервис</p>
 
-  <label>
-    <input type="radio" name="rating" value="2">
-    <span>2</span>
-  </label>
+  <p class="subtitle">
+    Ваше мнение очень важно для нас
+  </p>
 
-  <label>
-    <input type="radio" name="rating" value="3">
-    <span>3</span>
-  </label>
+  <div class="rating">
 
-  <label>
-    <input type="radio" name="rating" value="4">
-    <span>4</span>
-  </label>
+    <label>
+      <input type="radio" name="rating" value="1">
+      <span>1</span>
+    </label>
 
-  <label>
-    <input type="radio" name="rating" value="5">
-    <span>5</span>
-  </label>
+    <label>
+      <input type="radio" name="rating" value="2">
+      <span>2</span>
+    </label>
 
-</div>
+    <label>
+      <input type="radio" name="rating" value="3">
+      <span>3</span>
+    </label>
 
-<br>
+    <label>
+      <input type="radio" name="rating" value="4">
+      <span>4</span>
+    </label>
 
-<p>Ваше имя:</p>
+    <label>
+      <input type="radio" name="rating" value="5">
+      <span>5</span>
+    </label>
 
-<input
-  type="text"
-  id="name"
-  name="name"
-  placeholder="Введите ваше имя"
-  required
->
-<p>Оставьте комментарий:</p>
-<textarea
-  id="comment"
-  name="comment"
-  placeholder="Напишите ваш отзыв"
-  rows="5"
-></textarea>
+  </div>
 
-<br><br>
+  <br>
 
-<button type="submit">Отправить отзыв</button>
+  <p>Ваше имя:</p>
+
+  <input
+    type="text"
+    id="name"
+    name="name"
+    placeholder="Введите ваше имя"
+    required
+  >
+
+  <p>Оставьте комментарий:</p>
+
+  <textarea
+    id="comment"
+    name="comment"
+    placeholder="Напишите ваш отзыв"
+    rows="5"
+  ></textarea>
+
+  <br><br>
+
+  <button type="submit" id="submitButton">
+    Отправить отзыв
+  </button>
 
 </form>
 
 <script>
+
+  /* =========================================
+     SUPABASE
+     ========================================= */
+
   const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
 
+
+  /* =========================================
+     ДАННЫЕ ИЗ ССЫЛКИ
+     
+     Пример:
+     index.html?lead_id=123&contact_id=456&account_id=789
+     ========================================= */
+
+  const params = new URLSearchParams(window.location.search);
+
+  const amocrmLeadId =
+    params.get("lead_id") || null;
+
+  const amocrmContactId =
+    params.get("contact_id") || null;
+
+  const amocrmAccountId =
+    params.get("account_id") || null;
+
+
+  /* =========================================
+     ФОРМА
+     ========================================= */
+
   const form = document.querySelector("form");
 
+  const submitButton =
+    document.querySelector("#submitButton");
+
+
   form.addEventListener("submit", async function(event) {
+
     event.preventDefault();
+
+
+    /* Получаем оценку */
 
     const rating = document.querySelector(
       'input[name="rating"]:checked'
     );
 
+
+    /* Получаем имя */
+
     const name = document
-  .querySelector("#name")
-  .value
-  .trim();
+      .querySelector("#name")
+      .value
+      .trim();
+
+
+    /* Получаем комментарий */
+
     const comment = document
       .querySelector("#comment")
       .value
       .trim();
+
+
+    /* Проверяем оценку */
 
     if (!rating) {
       alert("Пожалуйста, поставьте оценку.");
       return;
     }
 
+
+    /* Проверяем комментарий */
+
     if (!comment) {
       alert("Пожалуйста, оставьте комментарий.");
       return;
     }
 
+
+    /* Блокируем кнопку */
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Отправляем...";
+
+
+    /* =========================================
+       СОХРАНЯЕМ ОТЗЫВ
+       ========================================= */
+
     const { error } = await supabaseClient
       .from("reviews")
       .insert([
         {
+
+          /* Основные данные */
+
           rating: Number(rating.value),
+
           name: name,
-          comment: comment
+
+          comment: comment,
+
+
+          /* =====================================
+             СВЯЗЬ С amoCRM
+             ===================================== */
+
+          amocrm_account_id:
+            amocrmAccountId
+              ? Number(amocrmAccountId)
+              : null,
+
+          amocrm_lead_id:
+            amocrmLeadId
+              ? Number(amocrmLeadId)
+              : null,
+
+          amocrm_contact_id:
+            amocrmContactId
+              ? Number(amocrmContactId)
+              : null
+
         }
       ]);
 
+
+    /* =========================================
+       ОШИБКА
+       ========================================= */
+
     if (error) {
+
       console.error(error);
-      alert("Не удалось отправить отзыв. Попробуйте ещё раз.");
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Отправить отзыв";
+
+      alert(
+        "Не удалось отправить отзыв. Попробуйте ещё раз."
+      );
+
       return;
     }
 
-    form.innerHTML = `
-      <div style="text-align: center; padding: 30px;">
-        <div style="font-size: 50px;">❤️</div>
 
-        <h2>Спасибо за ваш отзыв!</h2>
+    /* =========================================
+       УСПЕШНАЯ ОТПРАВКА
+       ========================================= */
+
+    form.innerHTML = `
+
+      <div
+        style="
+          text-align: center;
+          padding: 30px;
+        "
+      >
+
+        <div style="font-size: 50px;">
+          ❤️
+        </div>
+
+        <h2>
+          Спасибо за ваш отзыв!
+        </h2>
 
         <p style="color: #6b7280;">
           Ваше мнение очень важно для нас.
         </p>
+
       </div>
+
     `;
+
   });
+
 </script>
 
 </body>
