@@ -32,6 +32,16 @@
     margin-bottom: 30px;
   }
 
+  .customer {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #374151;
+  }
+
+  .customer strong {
+    color: #2563eb;
+  }
+
   .rating {
     display: flex;
     justify-content: center;
@@ -118,6 +128,19 @@
     background: #93c5fd;
     cursor: not-allowed;
   }
+
+  .loading {
+    text-align: center;
+    color: #6b7280;
+    padding: 30px;
+  }
+
+  .error {
+    text-align: center;
+    color: #dc2626;
+    padding: 30px;
+    line-height: 1.5;
+  }
 </style>
 
 <title>EVA Reviews</title>
@@ -128,253 +151,498 @@
 
 <body>
 
-<form>
+<form id="reviewForm">
 
-  <p class="title">Оцените сервис</p>
-
-  <p class="subtitle">
-    Ваше мнение очень важно для нас
-  </p>
-
-  <div class="rating">
-
-    <label>
-      <input type="radio" name="rating" value="1">
-      <span>1</span>
-    </label>
-
-    <label>
-      <input type="radio" name="rating" value="2">
-      <span>2</span>
-    </label>
-
-    <label>
-      <input type="radio" name="rating" value="3">
-      <span>3</span>
-    </label>
-
-    <label>
-      <input type="radio" name="rating" value="4">
-      <span>4</span>
-    </label>
-
-    <label>
-      <input type="radio" name="rating" value="5">
-      <span>5</span>
-    </label>
-
+  <div class="loading" id="loading">
+    Загружаем данные...
   </div>
-
-  <br>
-
-  <p>Ваше имя:</p>
-
-  <input
-    type="text"
-    id="name"
-    name="name"
-    placeholder="Введите ваше имя"
-    required
-  >
-
-  <p>Оставьте комментарий:</p>
-
-  <textarea
-    id="comment"
-    name="comment"
-    placeholder="Напишите ваш отзыв"
-    rows="5"
-  ></textarea>
-
-  <br><br>
-
-  <button type="submit" id="submitButton">
-    Отправить отзыв
-  </button>
 
 </form>
 
+
 <script>
 
-  /* =========================================
-     SUPABASE
-     ========================================= */
+/* =========================================
+   SUPABASE
+   ========================================= */
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+/* =========================================
+   НАСТРОЙКИ
+   ========================================= */
+
+const GET_REQUEST_URL =
+  "https://vzwjpzjyhknqiowhpugu.supabase.co/functions/v1/get-review-request";
+
+
+const params =
+  new URLSearchParams(
+    window.location.search
   );
 
 
-  /* =========================================
-     ДАННЫЕ ИЗ ССЫЛКИ
-     
-     Пример:
-     index.html?lead_id=123&contact_id=456&account_id=789
-     ========================================= */
-
-  const params = new URLSearchParams(window.location.search);
-
-  const amocrmLeadId =
-    params.get("lead_id") || null;
-
-  const amocrmContactId =
-    params.get("contact_id") || null;
-
-  const amocrmAccountId =
-    params.get("account_id") || null;
+const token =
+  params.get("token");
 
 
-  /* =========================================
-     ФОРМА
-     ========================================= */
-
-  const form = document.querySelector("form");
-
-  const submitButton =
-    document.querySelector("#submitButton");
+const form =
+  document.querySelector("#reviewForm");
 
 
-  form.addEventListener("submit", async function(event) {
+/* =========================================
+   ПРОВЕРЯЕМ TOKEN
+   ========================================= */
 
-    event.preventDefault();
+if (!token) {
+
+  form.innerHTML = `
+    <div class="error">
+      <h2>Ссылка недействительна</h2>
+      <p>
+        В ссылке отсутствует токен отзыва.
+      </p>
+    </div>
+  `;
+
+} else {
+
+  loadReviewRequest();
+
+}
 
 
-    /* Получаем оценку */
+/* =========================================
+   ПОЛУЧАЕМ ДАННЫЕ ЗАПРОСА
+   ========================================= */
 
-    const rating = document.querySelector(
-      'input[name="rating"]:checked'
+async function loadReviewRequest() {
+
+  try {
+
+    const response =
+      await fetch(
+        `${GET_REQUEST_URL}?token=${encodeURIComponent(token)}`
+      );
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "Данные review request:",
+      data
     );
 
 
-    /* Получаем имя */
+    if (
+      !response.ok ||
+      !data.success
+    ) {
 
-    const name = document
-      .querySelector("#name")
-      .value
-      .trim();
+      form.innerHTML = `
+        <div class="error">
 
+          <h2>
+            Ссылка недействительна
+          </h2>
 
-    /* Получаем комментарий */
+          <p>
+            ${data.error || "Не удалось загрузить данные."}
+          </p>
 
-    const comment = document
-      .querySelector("#comment")
-      .value
-      .trim();
-
-
-    /* Проверяем оценку */
-
-    if (!rating) {
-      alert("Пожалуйста, поставьте оценку.");
-      return;
-    }
-
-
-    /* Проверяем комментарий */
-
-    if (!comment) {
-      alert("Пожалуйста, оставьте комментарий.");
-      return;
-    }
-
-
-    /* Блокируем кнопку */
-
-    submitButton.disabled = true;
-    submitButton.textContent = "Отправляем...";
-
-
-    /* =========================================
-       СОХРАНЯЕМ ОТЗЫВ
-       ========================================= */
-
-    const { error } = await supabaseClient
-      .from("reviews")
-      .insert([
-        {
-
-          /* Основные данные */
-
-          rating: Number(rating.value),
-
-          name: name,
-
-          comment: comment,
-
-
-          /* =====================================
-             СВЯЗЬ С amoCRM
-             ===================================== */
-
-          amocrm_account_id:
-            amocrmAccountId
-              ? Number(amocrmAccountId)
-              : null,
-
-          amocrm_lead_id:
-            amocrmLeadId
-              ? Number(amocrmLeadId)
-              : null,
-
-          amocrm_contact_id:
-            amocrmContactId
-              ? Number(amocrmContactId)
-              : null
-
-        }
-      ]);
-
-
-    /* =========================================
-       ОШИБКА
-       ========================================= */
-
-    if (error) {
-
-      console.error(error);
-
-      submitButton.disabled = false;
-      submitButton.textContent = "Отправить отзыв";
-
-      alert(
-        "Не удалось отправить отзыв. Попробуйте ещё раз."
-      );
+        </div>
+      `;
 
       return;
     }
 
 
-    /* =========================================
-       УСПЕШНАЯ ОТПРАВКА
-       ========================================= */
+    const request =
+      data.review_request;
+
+
+    showReviewForm(request);
+
+
+  } catch (error) {
+
+    console.error(error);
 
     form.innerHTML = `
-
-      <div
-        style="
-          text-align: center;
-          padding: 30px;
-        "
-      >
-
-        <div style="font-size: 50px;">
-          ❤️
-        </div>
+      <div class="error">
 
         <h2>
-          Спасибо за ваш отзыв!
+          Ошибка загрузки
         </h2>
 
-        <p style="color: #6b7280;">
-          Ваше мнение очень важно для нас.
+        <p>
+          Не удалось получить данные.
+          Попробуйте открыть ссылку ещё раз.
         </p>
 
       </div>
-
     `;
 
-  });
+  }
+
+}
+
+
+/* =========================================
+   ПОКАЗЫВАЕМ ФОРМУ
+   ========================================= */
+
+function showReviewForm(request) {
+
+  const customerName =
+    request.customer_name || "";
+
+
+  form.innerHTML = `
+
+    <p class="title">
+      Оцените сервис
+    </p>
+
+    <p class="subtitle">
+      Ваше мнение очень важно для нас
+    </p>
+
+    ${
+      customerName
+        ? `
+          <div class="customer">
+            Отзыв для:
+            <strong>
+              ${escapeHtml(customerName)}
+            </strong>
+          </div>
+        `
+        : ""
+    }
+
+
+    <div class="rating">
+
+      <label>
+        <input
+          type="radio"
+          name="rating"
+          value="1"
+        >
+        <span>1</span>
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="rating"
+          value="2"
+        >
+        <span>2</span>
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="rating"
+          value="3"
+        >
+        <span>3</span>
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="rating"
+          value="4"
+        >
+        <span>4</span>
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="rating"
+          value="5"
+        >
+        <span>5</span>
+      </label>
+
+    </div>
+
+
+    <br>
+
+
+    <p>
+      Ваше имя:
+    </p>
+
+    <input
+      type="text"
+      id="name"
+      name="name"
+      placeholder="Введите ваше имя"
+      value="${escapeHtml(customerName)}"
+      required
+    >
+
+
+    <p>
+      Оставьте комментарий:
+    </p>
+
+    <textarea
+      id="comment"
+      name="comment"
+      placeholder="Напишите ваш отзыв"
+      rows="5"
+    ></textarea>
+
+
+    <br>
+    <br>
+
+
+    <button
+      type="submit"
+      id="submitButton"
+    >
+      Отправить отзыв
+    </button>
+
+  `;
+
+
+  const submitButton =
+    document.querySelector(
+      "#submitButton"
+    );
+
+
+  form.addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+
+      const rating =
+        document.querySelector(
+          'input[name="rating"]:checked'
+        );
+
+
+      const name =
+        document
+          .querySelector("#name")
+          .value
+          .trim();
+
+
+      const comment =
+        document
+          .querySelector("#comment")
+          .value
+          .trim();
+
+
+      if (!rating) {
+
+        alert(
+          "Пожалуйста, поставьте оценку."
+        );
+
+        return;
+      }
+
+
+      if (!comment) {
+
+        alert(
+          "Пожалуйста, оставьте комментарий."
+        );
+
+        return;
+      }
+
+
+      submitButton.disabled = true;
+
+      submitButton.textContent =
+        "Отправляем...";
+
+
+      /* =====================================
+         СОХРАНЯЕМ ОТЗЫВ
+         ===================================== */
+
+      const {
+        error: reviewError
+      } =
+        await supabaseClient
+          .from("reviews")
+          .insert([
+            {
+
+              rating:
+                Number(
+                  rating.value
+                ),
+
+              name:
+                name,
+
+              comment:
+                comment,
+
+              amocrm_account_id:
+                request.amocrm_account_id,
+
+              amocrm_lead_id:
+                request.amocrm_lead_id,
+
+              amocrm_contact_id:
+                request.amocrm_contact_id
+
+            }
+          ]);
+
+
+      if (reviewError) {
+
+        console.error(
+          reviewError
+        );
+
+        submitButton.disabled =
+          false;
+
+        submitButton.textContent =
+          "Отправить отзыв";
+
+        alert(
+          "Не удалось отправить отзыв. Попробуйте ещё раз."
+        );
+
+        return;
+      }
+
+
+      /* =====================================
+         ПОМЕЧАЕМ ССЫЛКУ КАК ИСПОЛЬЗОВАННУЮ
+         ===================================== */
+
+      const {
+        error: requestError
+      } =
+        await supabaseClient
+          .from("review_requests")
+          .update({
+            status: "used",
+            used_at:
+              new Date().toISOString()
+          })
+          .eq(
+            "token",
+            token
+          );
+
+
+      /*
+         Если здесь будет ошибка,
+         отзыв всё равно уже сохранён.
+      */
+
+      if (requestError) {
+
+        console.error(
+          "Ошибка обновления review request:",
+          requestError
+        );
+
+      }
+
+
+      /* =====================================
+         УСПЕШНАЯ ОТПРАВКА
+         ===================================== */
+
+      form.innerHTML = `
+
+        <div
+          style="
+            text-align: center;
+            padding: 30px;
+          "
+        >
+
+          <div
+            style="
+              font-size: 50px;
+            "
+          >
+            ❤️
+          </div>
+
+          <h2>
+            Спасибо за ваш отзыв!
+          </h2>
+
+          <p
+            style="
+              color: #6b7280;
+            "
+          >
+            Ваше мнение очень важно для нас.
+          </p>
+
+        </div>
+
+      `;
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   ЗАЩИТА ОТ HTML
+   ========================================= */
+
+function escapeHtml(value) {
+
+  return String(value || "")
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
 
 </script>
 
